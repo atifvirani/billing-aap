@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Signup</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .signup-container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 30px;
+      color: #4CAF50;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    .input-field {
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .signup-button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 0;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 18px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .signup-button:hover {
+      background-color: #45a049;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .login-link a {
+      color: #4CAF50;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="signup-container">
+  <div class="logo">Billing Aap</div>
+
+  <form id="signupForm">
+    <input type="text" id="name" class="input-field" placeholder="Full Name" required />
+    <input type="email" id="email" class="input-field" placeholder="Email" required />
+    <input type="password" id="password" class="input-field" placeholder="Password" required />
+    <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm Password" required />
+
+    <button type="submit" class="signup-button">Sign Up</button>
+  </form>
+
+  <div class="login-link">
+    <p>Already have an account? <a href="index.html">Login here</a></p>
+  </div>
+</div>
+
+<script>
+  // Signup form handling
+  const signupForm = document.getElementById("signupForm");
+
+  signupForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    // Basic validation (password match check)
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    // For now, just simulate successful signup
+    alert("Signup successful!");
+    window.location.href = "index.html"; // Redirect to login after successful signup
+  });
+</script>
+
+</body>
+</html>

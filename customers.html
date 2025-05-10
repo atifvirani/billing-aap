@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Customers</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-black text-white flex flex-col">
+    <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+   <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="products.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Products & Stock</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+      </nav>
+    <div class="p-4">
+      <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-800">Customers</h1>
+      <span class="text-sm text-gray-500">Welcome, Mohammed Atif</span>
+    </header>
+
+    <section class="p-6">
+      <!-- Customer Search Bar -->
+      <div class="space-x-2 mb-4">
+        <input type="text" id="customerSearch" placeholder="Search Customer" class="px-4 py-2 rounded border border-gray-300" />
+      </div>
+
+      <!-- Customer Table -->
+      <div class="bg-white p-4 rounded shadow">
+        <table id="customerTable" class="min-w-full table-auto">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left">Customer Name</th>
+              <th class="px-4 py-2 text-left">Contact</th>
+              <th class="px-4 py-2 text-left">Email</th>
+              <th class="px-4 py-2 text-left">Balance</th>
+              <th class="px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customerTableBody" class="text-sm text-gray-700">
+            <!-- Customer rows will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const billingData = JSON.parse(localStorage.getItem('billingData') || '[]');
+
+  // Extract unique customers from billing data
+  const uniqueCustomers = [];
+
+  billingData.forEach(entry => {
+    const exists = uniqueCustomers.some(c => c.email === entry.email);
+    if (!exists) {
+      uniqueCustomers.push({
+        name: entry.customerName,
+        contact: entry.contact,
+        email: entry.email,
+        balance: "₹0", // You can update this if you have balance logic
+        id: entry.id || Math.random().toString(36).substr(2, 9)
+      });
+    }
+  });
+
+  const tbody = document.getElementById("customerTableBody");
+
+  function renderCustomerTable(customers = uniqueCustomers) {
+    tbody.innerHTML = "";
+    customers.forEach(customer => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border px-4 py-2">${customer.name}</td>
+        <td class="border px-4 py-2">${customer.contact}</td>
+        <td class="border px-4 py-2">${customer.email}</td>
+        <td class="border px-4 py-2">${customer.balance}</td>
+        <td class="border px-4 py-2">
+          <button onclick="viewCustomer('${customer.id}')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  renderCustomerTable();
+
+  document.getElementById("customerSearch").addEventListener("input", function() {
+    const query = this.value.toLowerCase();
+    const filteredCustomers = uniqueCustomers.filter(customer =>
+      customer.name.toLowerCase().includes(query)
+    );
+    renderCustomerTable(filteredCustomers);
+  });
+
+  function viewCustomer(id) {
+    alert(`Viewing customer with ID: ${id}`);
+  }
+
+  function logout() {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+  }
+</script>
+
+
+</body>
+</html>

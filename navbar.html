@@ -1,0 +1,41 @@
+<!-- navbar.html -->
+<nav class="bg-gray-800 text-white p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center">
+            <img src="assets/logo-placeholder.png" alt="Logo" class="w-10 h-10 mr-2">
+            <span class="text-xl font-bold">Billing Aap</span>
+        </div>
+        <div class="hidden md:flex space-x-6">
+            <a href="dashboard.html" class="hover:text-blue-400">Dashboard</a>
+            <a href="customers.html" class="hover:text-blue-400">Customers</a>
+            <a href="reports.html" class="hover:text-blue-400">Reports</a>
+            <a href="settings.html" class="hover:text-blue-400">Settings</a>
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-white">Logout</button>
+        </div>
+        <div class="md:hidden">
+            <button onclick="toggleMenu()" class="text-white">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+<!-- Mobile Menu -->
+<div id="mobile-menu" class="md:hidden bg-gray-800 text-white space-y-4 p-4 hidden">
+    <a href="dashboard.html" class="block">Dashboard</a>
+    <a href="customers.html" class="block">Customers</a>
+    <a href="reports.html" class="block">Reports</a>
+    <a href="settings.html" class="block">Settings</a>
+    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-white">Logout</button>
+</div>
+
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('mobile-menu');
+        menu.classList.toggle('hidden');
+    }
+
+    function logout() {
+        localStorage.removeItem("isLoggedIn");
+        window.location.href = "index.html"; // Redirect to login page
+    }
+</script>

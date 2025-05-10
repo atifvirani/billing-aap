@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - LocalStorage Overview</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-6">
+  <div class="max-w-5xl mx-auto bg-white rounded shadow p-6">
+    <h1 class="text-2xl font-bold mb-4 text-green-700">📦 LocalStorage Data - Billing Aap</h1>
+
+    <div id="storageList" class="space-y-4 text-sm overflow-auto max-h-[60vh] border p-4 bg-gray-50 rounded"></div>
+
+    <div class="mt-6 flex gap-4">
+      <button onclick="backupAndClear()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+        🔐 Backup & Clear Storage
+      </button>
+      <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+        🔄 Refresh
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function displayStorage() {
+      const storageList = document.getElementById("storageList");
+      storageList.innerHTML = "";
+
+      if (localStorage.length === 0) {
+        storageList.innerHTML = "<p>No data found in LocalStorage.</p>";
+        return;
+      }
+
+      Object.keys(localStorage).forEach(key => {
+        const value = localStorage.getItem(key);
+        let parsed;
+        try {
+          parsed = JSON.parse(value);
+        } catch (e) {
+          parsed = value;
+        }
+
+        const block = document.createElement("div");
+        block.innerHTML = `
+          <div class="bg-white border border-gray-300 p-4 rounded shadow">
+            <h2 class="text-lg font-semibold text-blue-700">${key}</h2>
+            <pre class="mt-2 whitespace-pre-wrap break-words bg-gray-100 p-3 rounded text-gray-700">${JSON.stringify(parsed, null, 2)}</pre>
+          </div>
+        `;
+        storageList.appendChild(block);
+      });
+    }
+
+    function backupAndClear() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait" });
+      doc.text("Billing Aap - LocalStorage Backup", 14, 16);
+
+      let y = 30;
+
+      Object.keys(localStorage).forEach(key => {
+        const value = localStorage.getItem(key);
+        doc.setFontSize(12);
+        doc.text(`${key}:`, 14, y);
+        y += 6;
+
+        let printable;
+        try {
+          printable = JSON.stringify(JSON.parse(value), null, 2);
+        } catch {
+          printable = value;
+        }
+
+        const lines = doc.splitTextToSize(printable, 180);
+        lines.forEach(line => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, 14, y);
+          y += 5;
+        });
+
+        y += 4;
+      });
+
+      doc.save("BillingAap_LocalStorage_Backup.pdf");
+
+      // Clear except login session
+      Object.keys(localStorage).forEach(key => {
+        if (key !== "isLoggedIn") {
+          localStorage.removeItem(key);
+        }
+      });
+
+      alert("Backup saved and storage cleared.");
+      displayStorage();
+    }
+
+    // Init
+    displayStorage();
+  </script>
+</body>
+</html>

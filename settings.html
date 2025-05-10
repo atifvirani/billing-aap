@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Settings</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-black text-white flex flex-col">
+    <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+   <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="products.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Products & Stock</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+      </nav>
+    <div class="p-4">
+      <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-800">Settings</h1>
+      <span class="text-sm text-gray-500">Customize your preferences</span>
+    </header>
+
+    <section class="p-6 space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4">Upload Business Logo</h2>
+        <input type="file" id="logoUpload" class="block mb-2" />
+        <div id="logoPreview" class="mt-4"></div>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4">Business Name</h2>
+        <input type="text" id="businessName" placeholder="Enter your business name..." class="w-full p-3 border border-gray-300 rounded" />
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-bold mb-4">License</h2>
+        <button onclick="downloadLicense()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Download License PDF</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Other HTML above this -->
+
+<script>
+  function logout() {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+  }
+
+  function downloadLicense() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const businessName = localStorage.getItem("businessName") || "Your Business";
+
+    doc.text("Billing Aap License", 20, 20);
+    doc.text(`Licensed to: Mohammed Atif`, 20, 30);
+    doc.text(`Business: ${businessName}`, 20, 40);
+    doc.text("All rights reserved ©", 20, 50);
+    doc.save("BillingAap_License.pdf");
+  }
+
+  const logoInput = document.getElementById("logoUpload");
+  const logoPreview = document.getElementById("logoPreview");
+  const businessInput = document.getElementById("businessName");
+
+  window.onload = () => {
+    const savedLogo = localStorage.getItem("businessLogo");
+    const savedName = localStorage.getItem("businessName");
+
+    if (savedLogo) {
+      logoPreview.innerHTML = `<img src="${savedLogo}" alt="Logo" class="h-24 mt-2"/>`;
+    }
+
+    if (savedName) {
+      businessInput.value = savedName;
+    }
+  };
+
+  logoInput.addEventListener("change", function () {
+    const file = logoInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64Image = e.target.result;
+        localStorage.setItem("businessLogo", base64Image);
+        logoPreview.innerHTML = `<img src="${base64Image}" alt="Logo" class="h-24 mt-2"/>`;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  businessInput.addEventListener("input", () => {
+    localStorage.setItem("businessName", businessInput.value);
+  });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
+
+<!-- jsPDF CDN -->

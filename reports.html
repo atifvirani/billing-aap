@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Reports</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-black text-white flex flex-col">
+    <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+   <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="products.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Products & Stock</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+      </nav>
+    <div class="p-4">
+      <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-800">Reports</h1>
+      <span class="text-sm text-gray-500">Welcome, Mohammed Atif</span>
+    </header>
+
+    <section class="p-6">
+      <div class="flex justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-700">All Invoices</h2>
+        <div class="space-x-2">
+          <button onclick="exportToPDF()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Export PDF</button>
+          <button onclick="exportToExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export Excel</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto bg-white rounded shadow">
+        <table id="reportTable" class="min-w-full table-auto">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left">Date</th>
+              <th class="px-4 py-2 text-left">Customer</th>
+              <th class="px-4 py-2 text-left">Item</th>
+              <th class="px-4 py-2 text-left">Qty</th>
+              <th class="px-4 py-2 text-left">Price</th>
+              <th class="px-4 py-2 text-left">Total</th>
+              <th class="px-4 py-2 text-left">Advance</th>
+              <th class="px-4 py-2 text-left">Balance</th>
+              <th class="px-4 py-2 text-left">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="reportBody" class="text-sm text-gray-700"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const data = JSON.parse(localStorage.getItem("billingData") || "[]");
+  const tbody = document.getElementById("reportBody");
+
+  data.forEach(entry => {
+    const total = entry.quantity * entry.price;
+    const balance = total - (entry.advance || 0);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="border px-4 py-2">${entry.date}</td>
+      <td class="border px-4 py-2">${entry.customerName}</td>
+      <td class="border px-4 py-2">${entry.itemName}</td>
+      <td class="border px-4 py-2">${entry.quantity}</td>
+      <td class="border px-4 py-2">${entry.price}</td>
+      <td class="border px-4 py-2">${total}</td>
+      <td class="border px-4 py-2">${entry.advance || 0}</td>
+      <td class="border px-4 py-2">${balance}</td>
+      <td class="border px-4 py-2">${entry.notes || ""}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  function exportToExcel() {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(document.getElementById("reportTable"));
+    XLSX.utils.book_append_sheet(wb, ws, "Invoices");
+    XLSX.writeFile(wb, "BillingAap_Report.xlsx");
+  }
+
+  function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Billing Aap - Invoice Report", 14, 16);
+
+    const rows = [["Date", "Customer", "Item", "Qty", "Price", "Total", "Advance", "Balance", "Notes"]];
+    data.forEach(entry => {
+      const total = entry.quantity * entry.price;
+      const balance = total - (entry.advance || 0);
+      rows.push([
+        entry.date,
+        entry.customerName,
+        entry.itemName,
+        entry.quantity,
+        entry.price,
+        total,
+        entry.advance || 0,
+        balance,
+        entry.notes || ""
+      ]);
+    });
+
+    doc.autoTable({ head: [rows[0]], body: rows.slice(1), startY: 20 });
+    doc.save("BillingAap_Report.pdf");
+  }
+
+  function logout() {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

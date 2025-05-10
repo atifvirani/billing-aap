@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Manage Stock & History</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-black text-white flex flex-col">
+      <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+      <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+        <a href="manage-stock-history.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Manage Stock & History</a>
+      </nav>
+      <div class="p-4">
+        <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <!-- Top Navbar -->
+      <header class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-xl font-semibold text-gray-800">Manage Stock & History</h1>
+      </header>
+
+      <!-- Stock Management and History -->
+      <section class="p-6">
+        <div class="bg-white p-8 rounded shadow flex space-x-8">
+          <!-- Add Stock Form -->
+          <div class="w-1/2">
+            <h2 class="text-lg font-bold mb-6 text-gray-800 border-b pb-2">Add Product to Stock</h2>
+            <form id="stockForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-700">Select Product</label>
+                <select id="productSelect" class="w-full border border-gray-300 rounded px-4 py-2">
+                  <!-- Dropdown will be populated with product names -->
+                </select>
+              </div>
+
+              <div class="mt-4">
+                <label class="block text-sm font-medium mb-1 text-gray-700">Or, Add New Product</label>
+                <input type="text" id="newProductName" placeholder="New Product Name" class="w-full border border-gray-300 rounded px-4 py-2"/>
+              </div>
+
+              <div class="mt-4">
+                <label class="block text-sm font-medium mb-1 text-gray-700">Quantity (kg)</label>
+                <input type="number" id="stockQuantity" required class="w-full border border-gray-300 rounded px-4 py-2"/>
+              </div>
+
+              <div class="pt-4">
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">Add to Stock</button>
+              </div>
+            </form>
+
+            <!-- Clear Stock Button -->
+            <div class="mt-6">
+              <button onclick="clearStock()" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded">
+                🛑 Clear All Stock
+              </button>
+            </div>
+          </div>
+
+          <!-- Stock Information and History -->
+          <div class="w-1/2">
+            <h2 class="text-lg font-bold mb-6 text-gray-800 border-b pb-2">Stock and Sales History</h2>
+
+            <!-- Current Stock Table -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-800">Current Stock</h3>
+              <table class="min-w-full bg-white border border-gray-300 mt-4">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-2 text-left border-b">Product</th>
+                    <th class="px-4 py-2 text-left border-b">Total Stock (kg)</th>
+                  </tr>
+                </thead>
+                <tbody id="stockTable">
+                  <!-- Current stock rows will be populated here -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Stock History Table -->
+            <div>
+              <h3 class="text-lg font-semibold text-gray-800">Stock Sales History</h3>
+              <table class="min-w-full bg-white border border-gray-300 mt-4">
+                <thead>
+                  <tr>
+                    <th class="px-4 py-2 text-left border-b">Product</th>
+                    <th class="px-4 py-2 text-left border-b">Quantity Sold (kg)</th>
+                    <th class="px-4 py-2 text-left border-b">Sale Date</th>
+                    <th class="px-4 py-2 text-left border-b">Remaining Stock (kg)</th>
+                  </tr>
+                </thead>
+                <tbody id="stockHistoryTable">
+                  <!-- Stock history rows will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const stockForm = document.getElementById('stockForm');
+    const productSelect = document.getElementById('productSelect');
+    const newProductName = document.getElementById('newProductName');
+    const stockQuantityInput = document.getElementById('stockQuantity');
+    const stockTable = document.getElementById('stockTable');
+    const stockHistoryTable = document.getElementById('stockHistoryTable');
+
+    // Load products from localStorage and populate the dropdown
+    function loadProducts() {
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      productSelect.innerHTML = ''; // Clear the current options
+
+      products.forEach(product => {
+        const option = document.createElement('option');
+        option.value = product.name;
+        option.textContent = product.name;
+        productSelect.appendChild(option);
+      });
+
+      // Display the current stock table
+      displayCurrentStock(products);
+    }
+
+    // Display current stock in table
+    function displayCurrentStock(products) {
+      stockTable.innerHTML = ''; // Clear current stock rows
+      products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-4 py-2 border-b">${product.name}</td>
+          <td class="px-4 py-2 border-b">${product.stock}</td>
+        `;
+        stockTable.appendChild(row);
+      });
+    }
+
+    // Add stock to selected product or new product
+    stockForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const selectedProduct = productSelect.value;
+      const stockQuantity = Number(stockQuantityInput.value);
+
+      let products = JSON.parse(localStorage.getItem('products') || '[]');
+      if (newProductName.value) {
+        // Adding a new product to the products list
+        const newProduct = {
+          name: newProductName.value,
+          stock: stockQuantity,
+          history: [] // Initialize an empty history for the new product
+        };
+        products.push(newProduct);
+        localStorage.setItem('products', JSON.stringify(products));
+
+        // Clear the new product input and refresh dropdown
+        newProductName.value = '';
+      } else if (selectedProduct) {
+        // Updating stock for an existing product
+        const product = products.find(p => p.name === selectedProduct);
+        if (product) {
+          product.stock += stockQuantity;
+          product.history.push({ action: 'Stock Added', quantity: stockQuantity, date: new Date().toISOString() });
+          localStorage.setItem('products', JSON.stringify(products));
+        }
+      }
+
+      alert('Stock updated successfully!');
+      stockForm.reset();
+      loadProducts(); // Reload the product list
+    });
+
+    // Clear all product stocks
+    function clearStock() {
+      let products = JSON.parse(localStorage.getItem('products') || '[]');
+      
+      // Reset all product stocks to 0
+      products.forEach(product => {
+        product.stock = 0;
+      });
+
+      localStorage.setItem('products', JSON.stringify(products));
+      alert('All stocks have been cleared!');
+      loadProducts(); // Reload the product list
+    }
+
+    // Load and display stock history
+    function loadStockHistory() {
+      const products = JSON.parse(localStorage.getItem('products') || '[]');
+      stockHistoryTable.innerHTML = ''; // Clear the current rows
+
+      products.forEach(product => {
+        product.history.forEach(entry => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="px-4 py-2 border-b">${product.name}</td>
+            <td class="px-4 py-2 border-b">${entry.quantity}</td>
+            <td class="px-4 py-2 border-b">${entry.date}</td>
+            <td class="px-4 py-2 border-b">${product.stock}</td>
+          `;
+          stockHistoryTable.appendChild(row);
+        });
+      });
+    }
+
+    // Initial load
+    loadProducts();
+    loadStockHistory();
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem("isLoggedIn");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

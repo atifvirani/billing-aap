@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-black text-white flex flex-col">
+    <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+    <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="products.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Products & Stock</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+      </nav>
+    <div class="p-4">
+      <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
+      <span class="text-sm text-gray-500">Welcome, Mohammed Atif</span>
+    </header>
+
+    <section class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-green-600 text-white p-6 rounded-lg shadow-md">
+          <h2 class="text-lg font-bold">Total Sales</h2>
+          <p id="totalSales" class="text-3xl">₹ 0</p>
+        </div>
+        <div class="bg-blue-600 text-white p-6 rounded-lg shadow-md">
+          <h2 class="text-lg font-bold">Total Advance</h2>
+          <p id="totalAdvance" class="text-3xl">₹ 0</p>
+        </div>
+        <div class="bg-yellow-600 text-white p-6 rounded-lg shadow-md">
+          <h2 class="text-lg font-bold">Total Balance</h2>
+          <p id="totalBalance" class="text-3xl">₹ 0</p>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-lg font-bold text-gray-700">Export Invoice Report</h2>
+          <div class="space-x-2">
+            <button onclick="exportReport()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Export PDF</button>
+            <button onclick="exportToExcel()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export Excel</button>
+            <button onclick="clearDashboard()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Clear Dashboard</button>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <div class="space-x-2 mb-4">
+            <input type="text" id="customerFilter" placeholder="Search Customer" class="px-4 py-2 rounded border border-gray-300" />
+            <input type="month" id="monthFilter" class="px-4 py-2 rounded border border-gray-300" />
+          </div>
+          <table id="invoiceTable" class="min-w-full table-auto">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="px-4 py-2 text-left">Customer</th>
+                <th class="px-4 py-2 text-left">Date</th>
+                <th class="px-4 py-2 text-left">Item</th>
+                <th class="px-4 py-2 text-left">Qty</th>
+                <th class="px-4 py-2 text-left">Price</th>
+                <th class="px-4 py-2 text-left">Advance</th>
+                <th class="px-4 py-2 text-left">Balance</th>
+              </tr>
+            </thead>
+            <tbody id="invoiceTableBody" class="text-sm text-gray-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const data = JSON.parse(localStorage.getItem('billingData') || '[]');
+  const tbody = document.getElementById("invoiceTableBody");
+
+  let totalSales = 0;
+  let totalAdvance = 0;
+  let totalBalance = 0;
+
+  // Calculate total sales, advance and balance
+  data.forEach(entry => {
+    const total = entry.quantity * entry.price;
+    const balance = total - (entry.advance || 0);
+    totalSales += total;
+    totalAdvance += entry.advance || 0;
+    totalBalance += balance;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="border px-4 py-2">${entry.customerName}</td>
+      <td class="border px-4 py-2">${entry.date}</td>
+      <td class="border px-4 py-2">${entry.itemName}</td>
+      <td class="border px-4 py-2">${entry.quantity}</td>
+      <td class="border px-4 py-2">${entry.price}</td>
+      <td class="border px-4 py-2">${entry.advance || 0}</td>
+      <td class="border px-4 py-2">${balance}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // Display totals
+  document.getElementById("totalSales").textContent = `₹ ${totalSales.toFixed(2)}`;
+  document.getElementById("totalAdvance").textContent = `₹ ${totalAdvance.toFixed(2)}`;
+  document.getElementById("totalBalance").textContent = `₹ ${totalBalance.toFixed(2)}`;
+
+  // Filter function
+  document.getElementById("customerFilter").addEventListener("input", filterData);
+  document.getElementById("monthFilter").addEventListener("change", filterData);
+
+  function filterData() {
+    const customerFilter = document.getElementById("customerFilter").value.toLowerCase();
+    const monthFilter = document.getElementById("monthFilter").value;
+
+    const filteredData = data.filter(entry => {
+      const customerMatch = entry.customerName.toLowerCase().includes(customerFilter);
+      const monthMatch = !monthFilter || entry.date.startsWith(monthFilter);
+      return customerMatch && monthMatch;
+    });
+
+    tbody.innerHTML = ""; // Clear the table
+    filteredData.forEach(entry => {
+      const total = entry.quantity * entry.price;
+      const balance = total - (entry.advance || 0);
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border px-4 py-2">${entry.customerName}</td>
+        <td class="border px-4 py-2">${entry.date}</td>
+        <td class="border px-4 py-2">${entry.itemName}</td>
+        <td class="border px-4 py-2">${entry.quantity}</td>
+        <td class="border px-4 py-2">${entry.price}</td>
+        <td class="border px-4 py-2">${entry.advance || 0}</td>
+        <td class="border px-4 py-2">${balance}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // Export to Excel
+  function exportToExcel() {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(document.getElementById("invoiceTable"));
+    XLSX.utils.book_append_sheet(wb, ws, "Invoices");
+    XLSX.writeFile(wb, "BillingAap_Invoice_Report.xlsx");
+  }
+
+  // Export to PDF (filtered by customer and month)
+  function exportReport() {
+    const customerFilter = document.getElementById("customerFilter").value;
+    const monthFilter = document.getElementById("monthFilter").value;
+
+    const filteredData = data.filter(entry => {
+      const customerMatch = entry.customerName.includes(customerFilter);
+      const monthMatch = !monthFilter || entry.date.startsWith(monthFilter);
+      return customerMatch && monthMatch;
+    });
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Billing Aap - Invoice Report", 14, 16);
+    
+    const rows = [["Customer", "Date", "Item", "Qty", "Price", "Advance", "Balance"]];
+    filteredData.forEach(entry => {
+      const total = entry.quantity * entry.price;
+      const balance = total - (entry.advance || 0);
+      rows.push([entry.customerName, entry.date, entry.itemName, entry.quantity, entry.price, entry.advance || 0, balance]);
+    });
+
+    doc.autoTable({ head: [rows[0]], body: rows.slice(1), startY: 20 });
+    doc.save("BillingAap_Report.pdf");
+  }
+
+  // Clear Dashboard and Backup Data in PDF
+  function clearDashboard() {
+    const backupData = {
+      totalSales,
+      totalAdvance,
+      totalBalance,
+      data: data
+    };
+
+    // Backup PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("Billing Aap - Dashboard Backup", 14, 16);
+    doc.text(`Total Sales: ₹ ${totalSales.toFixed(2)}`, 14, 30);
+    doc.text(`Total Advance: ₹ ${totalAdvance.toFixed(2)}`, 14, 40);
+    doc.text(`Total Balance: ₹ ${totalBalance.toFixed(2)}`, 14, 50);
+    doc.text("Data backed up successfully.", 14, 60);
+    doc.save("BillingAap_Backup.pdf");
+
+    // Reset Data and Stats
+    localStorage.removeItem('billingData');
+    document.getElementById("totalSales").textContent = "₹ 0";
+    document.getElementById("totalAdvance").textContent = "₹ 0";
+    document.getElementById("totalBalance").textContent = "₹ 0";
+
+    // Clear Table
+    tbody.innerHTML = "";
+  }
+
+  function logout() {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>

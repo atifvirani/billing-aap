@@ -1,0 +1,351 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Billing Entry</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+  <div class="flex h-screen">
+    
+      
+    <aside class="w-64 bg-black text-white flex flex-col">
+      <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+     <nav class="flex-1 p-4 space-y-2">
+        <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+        <a href="data-entry.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📝 Billing Entry</a>
+        <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+        <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+        <a href="products.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📦 Products & Stock</a>
+        <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+      </nav>
+      <div class="p-4">
+        <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+      </div>
+    </aside>
+
+   
+    <main class="flex-1 overflow-y-auto">
+     
+
+      <header class="bg-white shadow p-4 flex justify-between items-center">
+        <h1 class="text-xl font-semibold text-gray-800">Billing Entry</h1>
+        <span class="text-sm text-gray-500">Welcome, Mohammed Atif</span>
+      </header>
+
+      
+      <section class="p-6">
+        <div class="bg-white p-8 rounded shadow max-w-2xl mx-auto">
+          <h2 class="text-lg font-bold mb-6 text-gray-800 border-b pb-2">New Billing Entry</h2>
+          <form id="billingForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Customer Name</label>
+              <input type="text" id="customerName" required class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"/>
+            </div>
+           <div>
+  <label class="block text-sm font-medium mb-1 text-gray-700">Item Name</label>
+  <select id="itemName" required class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">-- Select Product --</option>
+  </select>
+</div>
+
+            
+
+
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-700">Quantity</label>
+    <input type="number" id="quantity" required class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-700">Price per Unit</label>
+    <input type="number" id="price" required class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-700">Advance Payment</label>
+    <input type="number" id="advance" value="0" class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+  </div>
+  <div>
+    <label class="block text-sm font-medium mb-1 text-gray-700">Balance</label>
+    <input type="number" id="balance" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-4 py-2 text-gray-600"/>
+  </div>
+</div>
+
+
+              <label class="block text-sm font-medium mb-1 text-gray-700">Date</label>
+              <input type="date" id="date" required class="w-full border border-gray-300 rounded px-4 py-2"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Notes (Optional)</label>
+              <textarea id="notes" rows="3" class="w-full border border-gray-300 rounded px-4 py-2"></textarea>
+            </div>
+            <div class="pt-4">
+              <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">💾 Save Entry</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+  <script>
+    const form = document.getElementById('billingForm');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const invoice = {
+        customerName: document.getElementById('customerName').value,
+        itemName: document.getElementById('itemName').value,
+        quantity: Number(document.getElementById('quantity').value),
+        price: Number(document.getElementById('price').value),
+        date: document.getElementById('date').value,
+        notes: document.getElementById('notes').value
+      };
+
+      const existing = JSON.parse(localStorage.getItem('billingData') || '[]');
+      existing.push(invoice);
+      localStorage.setItem('billingData', JSON.stringify(existing));
+      alert('Billing entry saved!');
+      form.reset();
+    });
+
+    function logout() {
+      localStorage.removeItem("isLoggedIn");
+      window.location.href = "index.html";
+    }
+    function calculateBalance() {
+  const qty = Number(document.getElementById("quantity").value);
+  const price = Number(document.getElementById("price").value);
+  const advance = Number(document.getElementById("advance").value);
+  const total = qty * price;
+  const balance = total - advance;
+  document.getElementById("balance").value = balance >= 0 ? balance : 0;
+}
+
+form.addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const invoice = {
+    customerName: document.getElementById('customerName').value,
+    itemName: document.getElementById('itemName').value,
+    quantity: Number(document.getElementById('quantity').value),
+    price: Number(document.getElementById('price').value),
+    advance: Number(document.getElementById('advance').value),
+    balance: Number(document.getElementById('balance').value),
+    date: document.getElementById('date').value,
+    notes: document.getElementById('notes').value
+  };
+
+  const existing = JSON.parse(localStorage.getItem('billingData') || '[]');
+  existing.push(invoice);
+  localStorage.setItem('billingData', JSON.stringify(existing));
+  alert('Billing entry saved!');
+  form.reset();
+  calculateBalance(); // reset balance after clearing form
+});
+
+  </script>
+<script>
+  function populateProductDropdown() {
+    const productList = JSON.parse(localStorage.getItem('productStock') || '[]');
+    const dropdown = document.getElementById('itemName');
+    dropdown.innerHTML = '<option value="">-- Select Product --</option>'; // Clear previous
+
+    productList.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product.name;
+      option.textContent = product.name;
+      dropdown.appendChild(option);
+    });
+  }
+
+  // Call on load
+  window.addEventListener('DOMContentLoaded', populateProductDropdown);
+</script>
+
+
+</body>
+</html>-->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Aap - Billing Entry</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-black text-white flex flex-col">
+    <div class="flex items-center justify-center h-16 bg-green-600 font-bold text-xl">Billing Aap</div>
+    <nav class="flex-1 p-4 space-y-2">
+      <a href="dashboard.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📊 Dashboard</a>
+      <a href="data-entry.html" class="block px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">📝 Billing Entry</a>
+      <a href="reports.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📄 Reports</a>
+      <a href="customers.html" class="block px-4 py-2 hover:bg-gray-800 rounded">👤 Customers</a>
+      <a href="stkhis.html" class="block px-4 py-2 hover:bg-gray-800 rounded">📦 Products & Stock</a>
+      <a href="settings.html" class="block px-4 py-2 hover:bg-gray-800 rounded">⚙️ Settings</a>
+    </nav>
+    <div class="p-4">
+      <button onclick="logout()" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto">
+    <!-- Top Navbar -->
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold text-gray-800">Billing Entry</h1>
+      <span class="text-sm text-gray-500">Welcome, Mohammed Atif</span>
+    </header>
+
+    <!-- Entry Form -->
+    <section class="p-6">
+      <div class="bg-white p-8 rounded shadow max-w-2xl mx-auto">
+        <h2 class="text-lg font-bold mb-6 text-gray-800 border-b pb-2">New Billing Entry</h2>
+        <form id="billingForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Customer Name</label>
+            <input type="text" id="customerName" required class="w-full border border-gray-300 rounded px-4 py-2"/>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Item Name</label>
+            <select id="itemName" required class="w-full border border-gray-300 rounded px-4 py-2">
+              <option value="">-- Select Product --</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Quantity</label>
+              <input type="number" id="quantity" required class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Price per Unit</label>
+              <input type="number" id="price" required class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Advance Payment</label>
+              <input type="number" id="advance" value="0" class="w-full border border-gray-300 rounded px-4 py-2" oninput="calculateBalance()"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Balance</label>
+              <input type="number" id="balance" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-4 py-2 text-gray-600"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Date</label>
+            <input type="date" id="date" required class="w-full border border-gray-300 rounded px-4 py-2"/>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1 text-gray-700">Notes (Optional)</label>
+            <textarea id="notes" rows="3" class="w-full border border-gray-300 rounded px-4 py-2"></textarea>
+          </div>
+
+          <div class="pt-4">
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">💾 Save Entry</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Script -->
+<script>
+  const form = document.getElementById('billingForm');
+
+  function logout() {
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+  }
+
+  function calculateBalance() {
+    const qty = Number(document.getElementById("quantity").value);
+    const price = Number(document.getElementById("price").value);
+    const advance = Number(document.getElementById("advance").value);
+    const total = qty * price;
+    const balance = total - advance;
+    document.getElementById("balance").value = balance >= 0 ? balance : 0;
+  }
+
+  function populateProductDropdown() {
+    const productList = JSON.parse(localStorage.getItem('productStock') || '[]');
+    const dropdown = document.getElementById('itemName');
+    dropdown.innerHTML = '<option value="">-- Select Product --</option>';
+    productList.forEach(product => {
+      const option = document.createElement('option');
+      option.value = product.name;
+      option.textContent = product.name;
+      dropdown.appendChild(option);
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const productList = JSON.parse(localStorage.getItem('productStock') || '[]');
+    const billingData = JSON.parse(localStorage.getItem('billingData') || '[]');
+
+    const selectedProductName = document.getElementById('itemName').value;
+    const quantitySold = Number(document.getElementById('quantity').value);
+    const price = Number(document.getElementById('price').value);
+    const advance = Number(document.getElementById('advance').value);
+    const balance = Number(document.getElementById('balance').value);
+
+    const invoice = {
+      customerName: document.getElementById('customerName').value,
+      itemName: selectedProductName,
+      quantity: quantitySold,
+      price: price,
+      advance: advance,
+      balance: balance,
+      date: document.getElementById('date').value,
+      notes: document.getElementById('notes').value
+    };
+
+    // Reduce stock & add to product history
+    const product = productList.find(p => p.name === selectedProductName);
+    if (product) {
+      product.stock = (product.stock || 0) - quantitySold;
+      if (!product.history) product.history = [];
+      product.history.push({
+        action: 'Sold',
+        quantity: quantitySold,
+        rate: price,
+        date: new Date().toISOString()
+      });
+    }
+
+    // Save updates
+    billingData.push(invoice);
+    localStorage.setItem('billingData', JSON.stringify(billingData));
+    localStorage.setItem('productStock', JSON.stringify(productList));
+
+    alert('Billing entry saved and stock updated!');
+    form.reset();
+    calculateBalance();
+  });
+
+  window.addEventListener('DOMContentLoaded', populateProductDropdown);
+</script>
+
+</body>
+</html>
